@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
 import urllib.request
@@ -13,11 +14,11 @@ def getContents(url):
     return page
 
 
-def extractPdfs(content):
-    soup = BeautifulSoup(content, "html.parser")
+def extractPdfs(content, parser = "html.parser"):
+    soup = BeautifulSoup(content, parser)
     main_content = str(soup.select("div#main")[0])
 
-    soup = BeautifulSoup(main_content, "html.parser")
+    soup = BeautifulSoup(main_content, parser)
     links = soup.find_all("a")
 
     pdfs = []

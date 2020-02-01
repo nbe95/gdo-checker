@@ -1,0 +1,17 @@
+{
+    "url": "<QUERY_URL>",
+    "email": {
+        "sender": {
+            "server":   "<SMTP_SERVER>",
+            "port":     <SMTP_PORT>,
+            "user":     "<SMTP_USER>",
+            "password": "<SMTP_PASSWORD>"
+        },
+        "recipients": [
+            "<RECIPIENT_1>",
+            "<RECIPIENT_2>",
+            "<RECIPIENT_3>",
+            "<RECIPIENT_4>"
+        ]
+    }
+}

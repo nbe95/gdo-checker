@@ -8,10 +8,9 @@
             "password": "<SMTP_PASSWORD>"
         },
         "recipients": [
-            "<RECIPIENT_1>",
-            "<RECIPIENT_2>",
-            "<RECIPIENT_3>",
-            "<RECIPIENT_4>"
+            ["<NAME_1>", "<EMAIL_1>"],
+            ["<NAME_2>", "<EMAIL_2>"],
+            ["<NAME_3>", "<EMAIL_3>"]
         ]
     }
 }

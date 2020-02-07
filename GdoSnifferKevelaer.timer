@@ -1,0 +1,8 @@
+[Unit]
+Description=GdoSniffer service for Kevelaer
+
+[Timer]
+OnCalendar=*-*-* 00/2:0:0
+
+[Install]
+WantedBy=basic.target

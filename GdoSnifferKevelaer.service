@@ -1,0 +1,10 @@
+[Unit]
+Description=GdoSniffer service for Kevelaer
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=niklas
+ExecStart=/prod/GdoSnifferKevelaer/run.sh
+Restart=no

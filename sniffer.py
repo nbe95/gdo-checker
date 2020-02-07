@@ -27,12 +27,61 @@ DB_FILE     = "./last-query.csv"
 SLEEP_TIME  = 5
 
 
-def getContents(url):
+class Link:
+    def __init__(self, name, url, date=None):
+        self.__name = name
+        self.__url  = url
+        self.__date = date
+
+    def getData(self):
+        return (
+            self.__name,
+            self.__url,
+            self.__date
+        )
+
+    def print(self):
+        out = ""
+        if self.__date != None:
+            out += "[{}] ".format(self.__date.strftime("%Y/%m/%d"))
+        out += "\"{}\" -> {}".format(
+            self.__name,
+            self.__url
+        )
+        return out
+
+    def setDate(self, date):
+        self.__date = date
+        return date
+
+    def isEqual(self, name, url):
+        return (self.__name == name and self.__url == url)
+
+
+def dateToString(date):
+    return date.strftime("%Y-%m-%d")
+
+
+def dateFromString(date_str):
+    return datetime.datetime.strptime(date_str, "%Y-%m-%d")
+
+
+def makePrettyDate(date):
+    diff = (datetime.datetime.today() - date).days
+    if date == None:
+        return "NEU"
+    return "seit {} {}".format(
+        diff,
+        "Tag" if diff == 1 else "Tagen"
+    )
+
+
+def getWebsiteContent(url):
     page = urllib.request.urlopen(url)
     return page
 
 
-def extractPdfs(content, parser = "html.parser"):
+def extractPdfLinks(content, parser = "html.parser"):
     soup = BeautifulSoup(content, parser)
     main_content = str(soup.select("div#main")[0])
 
@@ -44,7 +93,7 @@ def extractPdfs(content, parser = "html.parser"):
         title = l.get_text()
         href = l.get("href")
         if href.endswith(".pdf"):
-            pdfs.append((title, href))
+            pdfs.append(Link(title, href))
     return pdfs
 
 
@@ -67,33 +116,15 @@ def sendEmail(server, sender, recipient, subject, message):
     return result
 
 
-def compareLinks(query, last_query):
-    total_files = new_files = 0
-    links_with_date = []
-    for (name, link) in query:
-        total_files += 1
-        found = False
-        for (name_old, link_old, date_old) in last_query:
-            if name == name_old and link == link_old:
-                links_with_date.append((name, link, date_old))
-                found = True
-                break
-        if not found:
-            new_files += 1
-            links_with_date.append((name, link, None))
-
-    return (links_with_date, new_files, total_files)
-
-
-def storeQuery(file, query):
-    with open(file, "w") as f:
+def storeQuery(db_file, query_db):
+    with open(db_file, "w") as f:
         writer = csv.writer(f, delimiter = ",", quotechar = "\"", quoting = csv.QUOTE_MINIMAL)
-        for name, link, date in query:
-            date_str = datetime.datetime.strftime(
-                date if date != None else datetime.datetime.today(),
-                "%Y-%m-%d"
-            )
-            writer.writerow([name, link, date_str])
+        for l in query_db:
+            name, url, date = l.getData()
+            if date == None:
+                date = datetime.datetime.today()
+            date_str = dateToString(date)
+            writer.writerow([name, url, date_str])
 
 
 def loadQuery(file):
@@ -104,19 +135,10 @@ def loadQuery(file):
         return query
 
     reader = csv.reader(f, delimiter = ",", quotechar = "\"")
-    for name, link, date_str in reader:
-        query.append((name, link, datetime.datetime.strptime(date_str, "%Y-%m-%d")))
+    for name, url, date_str in reader:
+        date = dateFromString(date_str)
+        query.append(Link(name, url, date))
     return query
-
-
-def makeDateString(date):
-    if date == None:
-        return "NEU"
-    diff = (datetime.datetime.today() - date).days
-    return "seit {} {}".format(
-        diff,
-        "Tag" if diff == 1 else "Tagen"
-    )
 
 
 def main():
@@ -134,50 +156,56 @@ def main():
     # Load last query results.
     links_old = loadQuery(DB_FILE)
     print("DB file with last query results ({} entries) loaded.".format(len(links_old)))
-    for name, link, date in links_old:
-        print("  - [{}] \"{}\" -> {}".format(
-            date.strftime("%Y-%m-%d"),
-            name,
-            link
-        ))
+    for l in links_old:
+        print("  -", l.print()),
 
     # Query URL and extract PDF links.
-    content = getContents(config["url"])
-    links = extractPdfs(content)
+    content = getWebsiteContent(config["url"])
+    links = extractPdfLinks(content)
+    count_total = len(links)
     print("URL query of \"{}\" ({} entries) finished.".format(
         config["url"],
-        len(links)
+        count_total
     ))
-    for name, link in links:
-        print("  - \"{}\" -> {}".format(
-            name,
-            link
-        ))
+    for l in links:
+        print("  -", l.print())
 
-    # Check if there are new links.
-    links_with_date, new_links, total_links = compareLinks(links, links_old)
+    # Get date info from last query and check if there are new links.
+    count_new = 0
+    for l in links:
+        found = False
+        name, url, _ = l.getData()
+        for l_old in links_old:
+            name_old, url_old, date_old = l_old.getData()
+            if l.isEqual(name_old, url_old):
+                l.setDate(date_old)
+                found = True
+                break
+        if not found:
+            count_new += 1
 
     print("There are {} new PDF links of {} total.".format(
-        new_links,
-        total_links
+        count_new,
+        count_total
     ))
 
-    if new_links > 0:
+    if count_new > 0:
         # Make subject and message text.
         mail_subject = "Kevelaer: {} {}".format(
-            new_links,
-            "neuer Gottesdienstplan" if new_links == 1 else "neue Gottesdienstpläne"
+            count_new,
+            "neuer Gottesdienstplan" if count_new == 1 else "neue Gottesdienstpläne"
         )
 
         mail_text = "Hallo {name},\n\n"
         mail_text += "es wurden kürzlich neue Gottesdienstpläne für St. Marien Kevelaer veröffentlicht.\n\n"
-        for (name, link, date) in links_with_date:
+        for l in links:
+            name, url, date = l.getData()
             mail_text += "[{}] {}\n{}\n\n".format(
-                makeDateString(date),
+                (makePrettyDate(date) if date != None else "NEU"),
                 name,
-                link
+                url
             )
-        mail_text += "\nViele Grüße\ndein Raspberry Pi\n"
+        mail_text += "Viele Grüße\ndein Raspberry Pi\n"
 
         print("Generated mail subject: {}".format(mail_subject))
         print("Generated mail text:\n{}".format(mail_text))
@@ -205,7 +233,7 @@ def main():
             sleep(SLEEP_TIME)
 
         # Save this query for the next time.
-        storeQuery(DB_FILE, links_with_date)
+        storeQuery(DB_FILE, links)
 
     else:
         print("Nothing to do. Good-bye!")

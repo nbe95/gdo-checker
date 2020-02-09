@@ -1,4 +1,4 @@
-/logs/
+/logs/*
 
 /config.json
 /last-query.csv

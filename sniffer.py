@@ -61,7 +61,7 @@ class Link:
         return (self.__name == name and self.__url == url)
 
 
-def makePrettyDate(now=datetime.datetime.now()):
+def makePrettyDate(dt, now=datetime.datetime.now()):
     try:
         diff = (now - dt).days
         if diff == 0:

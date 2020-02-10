@@ -239,7 +239,7 @@ def main():
                 query_old_date.strftime("%d.%m.%Y %H:%M:%S")
             )
 
-        mail_text += "Viele Grüße\ndein Raspberry Pi\n"
+        mail_text += "\nViele Grüße\ndein Raspberry Pi\n"
 
         print("Generated mail subject: {}".format(mail_subject))
         print("Generated mail text:\n{}".format(mail_text))

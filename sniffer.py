@@ -23,57 +23,54 @@ import smtplib
 
 
 CONFIG_FILE = "./config.json"
-DB_FILE     = "./last-query.csv"
+DB_FILE     = "./last-query.json"
 SLEEP_TIME  = 5
+ISO_DATE    = "%Y-%m-%dT%H:%M:%S"
 
 
 class Link:
-    def __init__(self, name, url, date=None):
+    def __init__(self, name, url, pub_date=None):
         self.__name = name
         self.__url  = url
-        self.__date = date
+        self.__pub_date = pub_date
 
     def getData(self):
         return (
             self.__name,
             self.__url,
-            self.__date
+            self.__pub_date
         )
 
-    def print(self):
-        out = ""
-        if self.__date != None:
-            out += "[{}] ".format(self.__date.strftime("%Y/%m/%d"))
+    def print(self, pre="", post=""):
+        out = pre
+        if self.__pub_date != None:
+            out += "[{}] ".format(self.__pub_date.strftime(ISO_DATE))
         out += "\"{}\" -> {}".format(
             self.__name,
             self.__url
         )
+        out += post
         return out
 
-    def setDate(self, date):
-        self.__date = date
-        return date
+    def setDate(self, dt):
+        self.__pub_date = dt
+        return dt
 
     def isEqual(self, name, url):
         return (self.__name == name and self.__url == url)
 
 
-def dateToString(date):
-    return date.strftime("%Y-%m-%d")
-
-
-def dateFromString(date_str):
-    return datetime.datetime.strptime(date_str, "%Y-%m-%d")
-
-
-def makePrettyDate(date):
-    diff = (datetime.datetime.today() - date).days
-    if date == None:
-        return "NEU"
-    return "seit {} {}".format(
-        diff,
-        "Tag" if diff == 1 else "Tagen"
-    )
+def makePrettyDate(now=datetime.datetime.now()):
+    try:
+        diff = (now - dt).days
+        if diff == 0:
+            return "seit heute"
+        return "seit {} {}".format(
+            diff,
+            "Tag" if diff == 1 else "Tagen"
+        )
+    except:
+        return "[???]"
 
 
 def getWebsiteContent(url):
@@ -116,37 +113,59 @@ def sendEmail(server, sender, recipient, subject, message):
     return result
 
 
-def storeQuery(db_file, query_db):
+def storeQuery(db_file, query, query_date):
+    # Create JSON data structure.
+    data = {
+        "date": query_date.strftime(ISO_DATE),
+        "links": []
+    }
+    for l in query:
+        name, url, pub_date = l.getData()
+        if pub_date == None:
+            pub_date = query_date
+        data["links"].append({
+            "name":     name,
+            "url":      url,
+            "pub_date": pub_date.strftime(ISO_DATE)
+        })
+    # Write JSON DB file.
+    data_str = json.dumps(data, indent=2)
     with open(db_file, "w") as f:
-        writer = csv.writer(f, delimiter = ",", quotechar = "\"", quoting = csv.QUOTE_MINIMAL)
-        for l in query_db:
-            name, url, date = l.getData()
-            if date == None:
-                date = datetime.datetime.today()
-            date_str = dateToString(date)
-            writer.writerow([name, url, date_str])
+        length = f.write(data_str)
+    return length
 
 
-def loadQuery(file):
+def loadQuery(db_file):
     query = []
     try:
-        f = open(file, "r")
+        f = open(db_file, "r")
     except: # no query file yet
-        return query
+        return (query, None)
 
-    reader = csv.reader(f, delimiter = ",", quotechar = "\"")
-    for name, url, date_str in reader:
-        date = dateFromString(date_str)
-        query.append(Link(name, url, date))
-    return query
+    data = json.load(f)
+    query_date = datetime.datetime.strptime(data["date"], ISO_DATE)
+    for l in data["links"]:
+        try:
+            query.append(Link(
+                l["name"],
+                l["url"],
+                datetime.datetime.strptime(l["pub_date"], ISO_DATE)
+            ))
+        except:
+            print("Warning: Date \"{}\" could not be parsed!".format(
+                l["pub_date"]
+            ))
+    return (query, query_date)
 
 
 def main():
     # Check for debugging flag (i.e. don't actually send emails).
     DEBUG = (sys.argv[-1] == "--debug")
     if DEBUG:
-        print("+++ NOTE: Running in DEBUG mode! +++")
+        print("+" * 60)
+        print("NOTE: Running in DEBUG mode!")
         print("  - Not sending any mails at all.")
+        print("+" * 60)
         print()
 
     # Read config.
@@ -154,31 +173,35 @@ def main():
         config = json.load(f)
 
     # Load last query results.
-    links_old = loadQuery(DB_FILE)
-    print("DB file with last query results ({} entries) loaded.".format(len(links_old)))
-    for l in links_old:
-        print("  -", l.print()),
+    query_old, query_old_date = loadQuery(DB_FILE)
+    print("DB file from {} with last {} query results loaded.".format(
+        query_old_date.strftime(ISO_DATE) if query_old_date != None else "(unknown)",
+        len(query_old)
+    ))
+    for l in query_old:
+        print(l.print(pre = "  - "))
 
     # Query URL and extract PDF links.
     content = getWebsiteContent(config["url"])
-    links = extractPdfLinks(content)
-    count_total = len(links)
-    print("URL query of \"{}\" ({} entries) finished.".format(
+    query = extractPdfLinks(content)
+    count_total = len(query)
+    print("URL query of \"{}\" finished with {} entries.".format(
         config["url"],
         count_total
     ))
-    for l in links:
-        print("  -", l.print())
+    for l in query:
+        print(l.print(pre = "  - "))
+
 
     # Get date info from last query and check if there are new links.
     count_new = 0
-    for l in links:
+    for l in query:
         found = False
         name, url, _ = l.getData()
-        for l_old in links_old:
-            name_old, url_old, date_old = l_old.getData()
+        for l_old in query_old:
+            name_old, url_old, pub_date_old = l_old.getData()
             if l.isEqual(name_old, url_old):
-                l.setDate(date_old)
+                l.setDate(pub_date_old)
                 found = True
                 break
         if not found:
@@ -198,13 +221,19 @@ def main():
 
         mail_text = "Hallo {name},\n\n"
         mail_text += "es wurden kürzlich neue Gottesdienstpläne für St. Marien Kevelaer veröffentlicht.\n\n"
-        for l in links:
-            name, url, date = l.getData()
+        for l in query:
+            name, url, pub_date = l.getData()
             mail_text += "[{}] {}\n{}\n\n".format(
-                (makePrettyDate(date) if date != None else "NEU"),
+                (makePrettyDate(pub_date) if pub_date != None else "NEU"),
                 name,
                 url
             )
+        mail_text += "Direkt zur Homepage: {}\n".format(config["url"])
+        if query_old_date != None:
+            mail_text += "Letzte Überprüfung: {}\n".format(
+                query_old_date.strftime("%d.%m.%Y %H:%M:%S")
+            )
+
         mail_text += "Viele Grüße\ndein Raspberry Pi\n"
 
         print("Generated mail subject: {}".format(mail_subject))
@@ -231,12 +260,12 @@ def main():
 
             # Calm down and insert a short delay.
             sleep(SLEEP_TIME)
-
-        # Save this query for the next time.
-        storeQuery(DB_FILE, links)
-
     else:
-        print("Nothing to do. Good-bye!")
+        print("--> Nothing to do here.")
+
+    # Save the current query for the next time.
+    bytes_written = storeQuery(DB_FILE, query, datetime.datetime.now())
+    print("Query file of {:d} Bytes stored for the next time.".format(bytes_written))
 
 
 if __name__ == "__main__":

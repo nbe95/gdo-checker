@@ -19,6 +19,7 @@ import urllib.request
 # email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formatdate
 import smtplib
 
 
@@ -105,6 +106,7 @@ def sendEmail(server, sender, recipient, subject, message):
     msg["Subject"]      = subject
     msg["From"]         = sender
     msg["To"]           = recipient
+    msg["Date"]         = formatdate(localtime = True)
     msg["Content-Type"] = "text/plain; charset=utf-8"
     mailBody = MIMEText(message, "plain", "UTF-8")
     msg.attach(mailBody)

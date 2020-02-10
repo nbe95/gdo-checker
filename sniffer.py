@@ -8,7 +8,6 @@ from time import sleep
 
 # file handling
 import json
-import csv
 
 # HTML parsing
 from bs4 import BeautifulSoup
@@ -265,6 +264,8 @@ def main():
 
             # Calm down and insert a short delay.
             sleep(SLEEP_TIME)
+        server.quit()
+
     else:
         print("--> Nothing to do here.")
 

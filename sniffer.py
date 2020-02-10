@@ -176,10 +176,13 @@ def main():
 
     # Load last query results.
     query_old, query_old_date = loadQuery(DB_FILE)
-    print("DB file from {} with last {} query results loaded.".format(
-        query_old_date.strftime(ISO_DATE) if query_old_date != None else "(unknown)",
-        len(query_old)
-    ))
+    if query_old_date != None:
+        print("DB file from {} with last {} query results loaded.".format(
+            query_old_date.strftime(ISO_DATE),
+            len(query_old)
+        ))
+    else:
+        print("Warning: No DB file found. Apparently running for the first time.")
     for l in query_old:
         print(l.print(pre = "  - "))
 

@@ -232,7 +232,7 @@ def main():
                 makePrettyDate(pub_date) if pub_date != None else "NEU",
                 url
             )
-        mail_text += "-" * 10
+        mail_text += ("-" * 10) + "\n"
         mail_text += "Direkt zur Homepage: {}\n".format(config["url"])
         if query_old_date != None:
             mail_text += "Letzte Überprüfung: {}\n".format(

@@ -64,7 +64,7 @@ def makePrettyDate(dt, now=datetime.datetime.now()):
     try:
         diff = (now - dt).days
         if diff == 0:
-            return "seit heute"
+            return "seit wenigen Stunden"
         return "seit {} {}".format(
             diff,
             "Tag" if diff == 1 else "Tagen"
@@ -227,11 +227,12 @@ def main():
         mail_text += "es wurden kürzlich neue Gottesdienstpläne für St. Marien Kevelaer veröffentlicht.\n\n"
         for l in query:
             name, url, pub_date = l.getData()
-            mail_text += "[{}] {}\n{}\n\n".format(
-                (makePrettyDate(pub_date) if pub_date != None else "NEU"),
+            mail_text += "▶ {} [{}]\n{}\n\n".format(
                 name,
+                makePrettyDate(pub_date) if pub_date != None else "NEU",
                 url
             )
+        mail_text += "-" * 10
         mail_text += "Direkt zur Homepage: {}\n".format(config["url"])
         if query_old_date != None:
             mail_text += "Letzte Überprüfung: {}\n".format(

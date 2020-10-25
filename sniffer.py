@@ -163,7 +163,7 @@ def getVersionAndHost(format_str = "{version}@{host}"):
     import subprocess
     import os
     return format_str.format(
-        version = subprocess.check_output(["git", "describe", "--always"]).strip(),
+        version = subprocess.check_output(["git", "describe", "--always"]).strip().decode("utf-8"),
         host = os.uname()[1]
     )
 

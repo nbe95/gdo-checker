@@ -247,9 +247,8 @@ def main():
             mail_text += "Letzte Überprüfung: {}\n".format(
                 query_old_date.strftime("%d.%m.%Y %H:%M:%S")
             )
+        mail_text += "\nViele Grüße\ndein Raspberry Pi\n\n"
         mail_text += getVersionAndHost() + "\n"
-
-        mail_text += "\nViele Grüße\ndein Raspberry Pi\n"
 
         print("Generated mail subject: {}".format(mail_subject))
         print("Generated mail text:\n{}".format(mail_text))

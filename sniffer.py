@@ -159,6 +159,15 @@ def loadQuery(db_file):
     return (query, query_date)
 
 
+def getVersionAndHost(format_str = "{version}@{host}"):
+    import subprocess
+    import os
+    return format_str.format(
+        version = subprocess.check_output(["git", "describe", "--always"]).strip(),
+        host = os.uname()[1]
+    )
+
+
 def main():
     # Check for debugging flag (i.e. don't actually send emails).
     DEBUG = (sys.argv[-1] == "--debug")
@@ -238,6 +247,7 @@ def main():
             mail_text += "Letzte Überprüfung: {}\n".format(
                 query_old_date.strftime("%d.%m.%Y %H:%M:%S")
             )
+        mail_text += getVersionAndHost() + "\n"
 
         mail_text += "\nViele Grüße\ndein Raspberry Pi\n"
 

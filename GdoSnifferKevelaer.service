@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-User=niklas
+User=pi
 WorkingDirectory=/prod/GdoSnifferKevelaer/
 ExecStart=/prod/GdoSnifferKevelaer/run.sh
 Restart=no

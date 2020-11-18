@@ -160,12 +160,15 @@ def loadQuery(db_file):
 
 
 def getVersionAndHost(format_str = "{version}@{host}"):
-    import subprocess
     import os
-    return format_str.format(
-        version = subprocess.check_output(["git", "describe", "--always"]).strip().decode("utf-8"),
-        host = os.uname()[1]
-    )
+    try:
+        f = fopen("./version", "r")
+        version = f.read()
+    except IOError:
+        print("WARNING: Version file does not exist.")
+        version = "<?>"
+
+    return format_str.format(version = version, host = os.uname()[1])
 
 
 def main():

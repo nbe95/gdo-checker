@@ -6,6 +6,6 @@ After=network-online.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/prod/GdoSnifferKevelaer/
-ExecStart=/prod/GdoSnifferKevelaer/run.sh
+WorkingDirectory=/usr/local/etc/gdo-sniffer-kevelaer
+ExecStart=/usr/local/src/gdo-sniffer-kevelaer/run.sh
 Restart=no

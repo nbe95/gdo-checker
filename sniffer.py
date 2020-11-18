@@ -162,7 +162,7 @@ def loadQuery(db_file):
 def getVersionAndHost(format_str = "{version}@{host}"):
     import os
     try:
-        f = fopen("./version", "r")
+        f = open("./version", "r")
         version = f.read()
     except IOError:
         print("WARNING: Version file does not exist.")

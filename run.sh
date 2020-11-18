@@ -13,4 +13,4 @@ mkdir -p $log_path
 find $log_path -name "*.log" -type f -mtime +$exp -delete
 
 # Run program and additionally store output to log file.
-./sniffer.py $@ | tee $log_path/$stamp.log
+"/usr/local/src/gdo-sniffer-kevelaer/sniffer.py" $@ | tee $log_path/$stamp.log

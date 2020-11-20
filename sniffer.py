@@ -22,8 +22,8 @@ from email.utils import formatdate
 import smtplib
 
 
-CONFIG_FILE = "./config.json"
-DB_FILE     = "./last-query.json"
+CONFIG_FILE = "/usr/local/etc/gdo-sniffer-kevelaer/config.json"
+DB_FILE     = "/var/local/gdo-sniffer-kevelaer/last-query.json"
 SLEEP_TIME  = 5
 ISO_DATE    = "%Y-%m-%dT%H:%M:%S"
 

@@ -163,7 +163,7 @@ def getVersionAndHost(format_str = "{version}@{host}"):
     import os
     try:
         f = open("./version", "r")
-        version = f.read()
+        version = f.read().strip()
     except IOError:
         print("WARNING: Version file does not exist.")
         version = "<?>"

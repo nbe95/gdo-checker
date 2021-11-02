@@ -2,7 +2,7 @@
 Description=GdoSniffer service for Kevelaer
 
 [Timer]
-OnCalendar=*-*-* 00/2:00:00
+OnCalendar=*-*-* 8..22/2:00:00
 
 [Install]
 WantedBy=basic.target

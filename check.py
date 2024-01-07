@@ -1,29 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-# general
 import sys
 import datetime
 from time import sleep
-
-# file handling
 import json
-
-# HTML parsing
 from bs4 import BeautifulSoup
-
-# HTTP requests
 import urllib.request
 
-# email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 import smtplib
 
 
-CONFIG_FILE = "/usr/local/etc/gdo-sniffer-kevelaer/config.json"
-DB_FILE     = "/var/local/gdo-sniffer-kevelaer/last-query.json"
+CONFIG_FILE = "/usr/local/etc/gdo-checker/config.json"
+DB_FILE     = "/var/local/gdo-checker/last-query.json"
 SLEEP_TIME  = 5
 ISO_DATE    = "%Y-%m-%dT%H:%M:%S"
 
@@ -230,13 +221,13 @@ def main():
 
     if count_new > 0:
         # Make subject and message text.
-        mail_subject = "Kevelaer: {} {}".format(
+        mail_subject = "{} {}".format(
             count_new,
             "neuer Gottesdienstplan" if count_new == 1 else "neue Gottesdienstpläne"
         )
 
         mail_text = "Hallo {name},\n\n"
-        mail_text += "es wurden kürzlich neue Gottesdienstpläne für St. Marien Kevelaer veröffentlicht.\n\n"
+        mail_text += "es wurden kürzlich neue Gottesdienstpläne online veröffentlicht.\n\n"
         for l in query:
             name, url, pub_date = l.getData()
             mail_text += "▶ {} [{}]\n{}\n\n".format(

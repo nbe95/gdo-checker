@@ -1,0 +1,11 @@
+[Unit]
+Description=GdoChecker service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/var/local/gdo-checker/
+ExecStart=/usr/local/src/gdo-checker/run.sh
+Restart=no

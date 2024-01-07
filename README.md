@@ -1,8 +1,8 @@
 # GDO Checker
 
-This systemd-powered web scraper used to notify me via mail whenever a new
-**G**ottes**d**ienst**o**rdnung was published online as PDF file at the website
-*of our church parish.
+Back in 2020, this systemd-powered web scraper used to notify me via mail
+whenever a new **G**ottes**d**ienst**o**rdnung was published online as PDF file
+at the website *of our church parish.
 
 It will be no longer maintained and resides here for documentary purposes only.
 Use and modify as you want, but at your own risk.
